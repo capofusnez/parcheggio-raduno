@@ -9,7 +9,7 @@ App per l'ingresso al raduno: elenco iscritti dal modulo Google, e per ognuno **
 
 I dati stanno solo nel foglio Google dell'organizzatore, che resta privato. Uno script attaccato al foglio (`apps-script/Code.gs`) fa da tramite e risponde solo a chi ha il link con la chiave segreta. In questo repository c'è solo il codice: niente dati, niente chiavi.
 
-L'app aggiunge in fondo al foglio le colonne `ID app`, `Entrato`, `Ora ingresso`, `Pagato`, `Scarichi`, `Foto`, `N° gara`, `Note app`. Le domande del modulo (nome, cognome, auto, targa, telefono, scarichi, foto) vengono riconosciute dal titolo della colonna.
+L'app aggiunge in fondo al foglio le colonne `ID app`, `Entrato`, `Ora ingresso`, `Pagato`, `Scarichi`, `Foto`, `N° gara`, `dB gara`, `Note app`. Le domande del modulo (nome, cognome, auto, targa, telefono, scarichi, foto) vengono riconosciute dal titolo della colonna.
 
 ## Messa in funzione (dal telefono)
 

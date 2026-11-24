@@ -17,8 +17,8 @@
 var APP_URL = 'https://capofusnez.github.io/parcheggio-raduno/';
 
 // colonne aggiunte dall'app in fondo al foglio
-var APP_COLS = ['ID app', 'Entrato', 'Ora ingresso', 'Pagato', 'Scarichi', 'Foto', 'N° gara', 'Note app'];
-var KEYS = { 'ID app': 'id', 'Entrato': 'entrato', 'Ora ingresso': 'ora', 'Pagato': 'pagato', 'Scarichi': 'scarichi', 'Foto': 'foto', 'N° gara': 'num', 'Note app': 'note' };
+var APP_COLS = ['ID app', 'Entrato', 'Ora ingresso', 'Pagato', 'Scarichi', 'Foto', 'N° gara', 'dB gara', 'Note app'];
+var KEYS = { 'ID app': 'id', 'Entrato': 'entrato', 'Ora ingresso': 'ora', 'Pagato': 'pagato', 'Scarichi': 'scarichi', 'Foto': 'foto', 'N° gara': 'num', 'dB gara': 'db', 'Note app': 'note' };
 
 // riconoscimento delle domande del modulo dal titolo della colonna
 var FIELDS = [
@@ -141,7 +141,7 @@ function elenco_() {
           entrato: flag('entrato'), pagato: flag('pagato'),
           scarichi: flag('scarichi', 'scarichiForm'), foto: flag('foto', 'fotoForm'),
           ora: ora instanceof Date ? Utilities.formatDate(ora, Session.getScriptTimeZone(), 'HH:mm') : String(ora),
-          num: String(g('num')), note: String(g('note'))
+          num: String(g('num')), db: String(g('db')), note: String(g('note'))
         });
       });
       if (servono) sh.getRange(2, m.id + 1, nuoviId.length, 1).setValues(nuoviId);
@@ -170,7 +170,7 @@ function scrivi_(p) {
     var riga = trovaRiga_(sh, m, p.id);
     if (riga < 0) return { ok: false, errore: 'non trovato' };
     var flags = { entrato: 1, pagato: 1, scarichi: 1, foto: 1 };
-    var campi = { nome: 1, cognome: 1, auto: 1, targa: 1, tel: 1, num: 1, note: 1 };
+    var campi = { nome: 1, cognome: 1, auto: 1, targa: 1, tel: 1, num: 1, db: 1, note: 1 };
     var f = String(p.f || '');
     if (flags[f]) {
       var on = String(p.v) === '1';
@@ -179,7 +179,9 @@ function scrivi_(p) {
     } else if (campi[f]) {
       var col = m[f];
       if (col < 0) col = m.note;
-      sh.getRange(riga, col + 1).setValue(String(p.v || '').slice(0, 200));
+      var v = String(p.v || '').slice(0, 200);
+      if (f === 'db' && v !== '') { var n = parseFloat(v.replace(',', '.')); v = isNaN(n) ? '' : n; }
+      sh.getRange(riga, col + 1).setValue(v);
     } else return { ok: false, errore: 'campo' };
     return { ok: true };
   } finally { lock.releaseLock(); }

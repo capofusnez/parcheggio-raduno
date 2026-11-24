@@ -43,6 +43,7 @@ main{padding:10px max(4vw,14px) calc(110px + env(safe-area-inset-bottom));max-wi
 .nm{font:700 20px/1.15 "Barlow Condensed",sans-serif}
 .nm small{font:700 14px Barlow,sans-serif;color:#111;background:var(--yel);border-radius:6px;padding:0 6px;margin-right:6px}
 .car{font-size:14px;color:var(--mut)}
+.db{font:800 16px 'Barlow Condensed',sans-serif;color:#fff;background:var(--exh);border-radius:6px;padding:0 6px;margin-left:8px;white-space:nowrap}
 .tg{display:flex;gap:6px}
 .t{min-width:66px;min-height:52px;border-radius:10px;border:2px solid var(--line);background:transparent;color:var(--mut);font:600 13px Barlow,sans-serif;cursor:pointer;padding:4px 6px;line-height:1.1}
 .t i{display:block;font-style:normal;font:800 19px/1 "Barlow Condensed",sans-serif}
@@ -126,6 +127,7 @@ label{display:block;font-size:14px;color:var(--mut);margin:10px 0 3px}
     <div><label for="eTel">Telefono</label><input id="eTel" inputmode="tel"></div>
     <div><label for="eNum">N° gara</label><input id="eNum" inputmode="numeric"></div>
   </div>
+  <label for="eDb">dB misurati (gara scarichi)</label><input id="eDb" inputmode="decimal" placeholder="Es. 118,5">
   <label for="eNote">Note</label><input id="eNote">
   <div class="acts">
     <button type="button" class="btn sec" id="eCancel">Chiudi</button>
@@ -150,7 +152,7 @@ label{display:block;font-size:14px;color:var(--mut);margin:10px 0 3px}
   </div>
   <div class="sect">
     <h2 style="font-size:22px;margin-top:8px">Liste</h2>
-    <div class="acts" style="justify-content:flex-start"><button type="button" class="btn sec" id="copyScar">Copia lista scarichi</button><button type="button" class="btn sec" id="copyFoto">Copia lista foto</button></div>
+    <div class="acts" style="justify-content:flex-start"><button type="button" class="btn sec" id="copyScar">Copia scarichi / classifica</button><button type="button" class="btn sec" id="copyFoto">Copia lista foto</button></div>
   </div>
   <div class="acts"><button type="button" class="btn del" id="logout">Scollega questo telefono</button><button type="button" class="btn sec" id="mClose">Chiudi</button></div>
 </form></dialog>
@@ -212,7 +214,7 @@ function val(p,f){const w=pendingFor(p.id,f);return w?(f in {entrato:1,pagato:1,
 
 /* ---------- vista ---------- */
 const name=p=>[val(p,'nome'),val(p,'cognome')].filter(Boolean).join(' ')||'(senza nome)';
-const FILT={tutti:['Tutti',p=>true],fuori:['Da entrare',p=>!val(p,'entrato')],dentro:['Entrati',p=>val(p,'entrato')],nonpag:['Entrati non pagati',p=>val(p,'entrato')&&!val(p,'pagato')],scarichi:['Gara scarichi',p=>val(p,'scarichi')],foto:['Foto',p=>val(p,'foto')]};
+const FILT={tutti:['Tutti',p=>true],fuori:['Da entrare',p=>!val(p,'entrato')],dentro:['Entrati',p=>val(p,'entrato')],nonpag:['Entrati non pagati',p=>val(p,'entrato')&&!val(p,'pagato')],scarichi:['Gara scarichi',p=>val(p,'scarichi')],classifica:['Classifica dB',p=>val(p,'scarichi')],foto:['Foto',p=>val(p,'foto')]};
 const eur=n=>n.toLocaleString('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
 function render(){
   $('titolo').textContent=cfg.nome||'Parcheggio Raduno';
@@ -223,13 +225,15 @@ function render(){
   $('chips').innerHTML=Object.entries(FILT).map(([k,[l]])=>`<button class="chip${filter===k?' on':''}" data-f="${k}">${l}</button>`).join('');
   const q=$('q').value.trim().toLowerCase();
   const list=rows.filter(FILT[filter][1]).filter(p=>!q||[name(p),val(p,'auto'),val(p,'targa'),val(p,'num')].join(' ').toLowerCase().includes(q));
-  list.sort((a,b)=>filter==='scarichi'?((+val(a,'num')||1e9)-(+val(b,'num')||1e9)||name(a).localeCompare(name(b),'it')):(val(a,'cognome')||val(a,'nome')||'').localeCompare(val(b,'cognome')||val(b,'nome')||'','it'));
+  const dbv=p=>{const n=parseFloat(String(val(p,'db')||'').replace(',','.'));return isNaN(n)?null:n};
+  if(filter==='classifica')list.sort((a,b)=>(dbv(b)??-1)-(dbv(a)??-1)||name(a).localeCompare(name(b),'it'));else list.sort((a,b)=>filter==='scarichi'?((+val(a,'num')||1e9)-(+val(b,'num')||1e9)||name(a).localeCompare(name(b),'it')):(val(a,'cognome')||val(a,'nome')||'').localeCompare(val(b,'cognome')||val(b,'nome')||'','it'));
   $('count').textContent=n?`${list.length} su ${n} · ${FILT[filter][0]}`:'';
   if(!n){$('list').innerHTML=`<div class="empty"><div class="big">Nessun iscritto per ora</div>Le iscrizioni del modulo Google compaiono qui da sole. Al cancello usa “+ Iscrivi”.</div>`;return}
   if(!list.length){$('list').innerHTML=`<div class="empty">Nessun risultato.</div>`;return}
-  $('list').innerHTML=list.map(p=>{const num=val(p,'num'),inn=val(p,'entrato');
+  let pos=0;
+  $('list').innerHTML=list.map(p=>{const num=val(p,'num'),inn=val(p,'entrato'),d=dbv(p);if(filter==='classifica'&&d!=null)pos++;
     return `<div class="row${inn?' in':''}" data-id="${esc(p.id)}">
-    <div class="who"><div class="nm">${num?`<small>${esc(num)}</small>`:''}${esc(name(p))}</div>
+    <div class="who"><div class="nm">${filter==='classifica'&&d!=null?`<small>${pos}°</small>`:num?`<small>${esc(num)}</small>`:''}${esc(name(p))}${d!=null?`<span class="db">${esc(String(d).replace('.',','))} dB</span>`:''}</div>
     <div class="car">${esc([val(p,'auto'),String(val(p,'targa')||'').toUpperCase()].filter(Boolean).join(' · ')||'—')}${inn&&p.ora&&!pendingFor(p.id,'entrato')?' · entrato '+esc(p.ora):''}${val(p,'note')?' · '+esc(val(p,'note')):''}</div></div>
     <div class="tg">${FLAGS.map(([k,l])=>{const on=val(p,k);return `<button class="t${on?' on':''}${pendingFor(p.id,k)?' pend':''}" data-k="${k}" aria-pressed="${!!on}"><i>${on?'✓':'–'}</i>${l}</button>`}).join('')}</div></div>`}).join('');
 }
@@ -240,13 +244,13 @@ $('list').addEventListener('click',e=>{
   const t=e.target.closest('.t');
   if(t){const k=t.dataset.k,was=!!val(p,k);write(p.id,k,was?'0':'1');try{navigator.vibrate&&navigator.vibrate(25)}catch(x){}
     lastUndo=()=>write(p.id,k,was?'1':'0');toast(`${name(p)}: ${FLAGS.find(f=>f[0]===k)[1]} ${was?'no':'sì'}`);return}
-  if(e.target.closest('.who'))openEdit(p)});
+  if(e.target.closest('.who')){openEdit(p);if(filter==='classifica'||filter==='scarichi')setTimeout(()=>$('eDb').focus(),50)}});
 function pick(e){const f=e.target.closest('[data-f]');if(f){filter=f.dataset.f;render();scrollTo({top:0})}}
 $('stats').onclick=pick;$('chips').onclick=pick;$('q').oninput=render;
 let tt;function toast(m,undo=true){$('tmsg').textContent=m;$('undo').style.display=undo&&lastUndo?'':'none';$('toast').style.display='flex';clearTimeout(tt);tt=setTimeout(()=>{$('toast').style.display='none';lastUndo=null},4000)}
 $('undo').onclick=()=>{lastUndo&&lastUndo();lastUndo=null;$('toast').style.display='none'};
 
-const EF=[['eNome','nome'],['eCognome','cognome'],['eAuto','auto'],['eTarga','targa'],['eTel','tel'],['eNum','num'],['eNote','note']];
+const EF=[['eNome','nome'],['eCognome','cognome'],['eAuto','auto'],['eTarga','targa'],['eTel','tel'],['eNum','num'],['eDb','db'],['eNote','note']];
 let editing=null;
 function openEdit(p){editing=p;$('eTitle').textContent=p?'Modifica':'Iscrizione al cancello';$('eSave').textContent=p?'Salva':'Iscrivi';
   EF.forEach(([i,k])=>$(i).value=p?(val(p,k)||''):'');$('dEdit').showModal()}
@@ -273,7 +277,9 @@ $('fMenu').onsubmit=async e=>{e.preventDefault();const n={nome:$('cNome').value.
 async function copy(t,m){try{await navigator.clipboard.writeText(t);toast(m,false)}catch(e){toast('Copia non riuscita',false)}}
 $('copyBtn').onclick=()=>copy(appLink(),'Link copiato');
 $('shareBtn').onclick=async()=>{try{if(navigator.share){await navigator.share({title:cfg.nome||'Parcheggio Raduno',text:'App del parcheggio per il raduno:',url:appLink()});return}}catch(e){if(e.name==='AbortError')return}copy(appLink(),'Link copiato: incollalo su WhatsApp')};
-$('copyScar').onclick=()=>copy('GARA SCARICHI\n'+rows.filter(p=>val(p,'scarichi')).sort((a,b)=>(+val(a,'num')||1e9)-(+val(b,'num')||1e9)).map((p,i)=>`${val(p,'num')||i+1}. ${name(p)} – ${val(p,'auto')||''} ${val(p,'targa')||''}${val(p,'entrato')?'':' (non entrato)'}`).join('\n'),'Lista scarichi copiata');
+$('copyScar').onclick=()=>{const dn=p=>{const n=parseFloat(String(val(p,'db')||'').replace(',','.'));return isNaN(n)?null:n};const g=rows.filter(p=>val(p,'scarichi'));
+  if(g.some(p=>dn(p)!=null))return copy('CLASSIFICA GARA SCARICHI\n'+g.sort((a,b)=>(dn(b)??-1)-(dn(a)??-1)).map((p,i)=>`${dn(p)!=null?(i+1)+'°':'–'} ${name(p)} – ${val(p,'auto')||''}${dn(p)!=null?' – '+String(dn(p)).replace('.',',')+' dB':' (non misurato)'}`).join('\n'),'Classifica copiata');
+  copy('GARA SCARICHI\n'+rows.filter(p=>val(p,'scarichi')).sort((a,b)=>(+val(a,'num')||1e9)-(+val(b,'num')||1e9)).map((p,i)=>`${val(p,'num')||i+1}. ${name(p)} – ${val(p,'auto')||''} ${val(p,'targa')||''}${val(p,'entrato')?'':' (non entrato)'}`).join('\n'),'Lista scarichi copiata')};
 $('copyFoto').onclick=()=>copy('FOTO CON RAGAZZE IMMAGINE\n'+rows.filter(p=>val(p,'foto')).map((p,i)=>`${i+1}. ${name(p)} – ${val(p,'auto')||''}`).join('\n'),'Lista foto copiata');
 $('logout').onclick=()=>{store.del('conn');store.del('rows');store.del('queue');conn=null;rows=[];queue=[];$('dMenu').close();show()};
 
