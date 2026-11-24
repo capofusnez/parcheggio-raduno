@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f2226">
+<title>Parcheggio Raduno</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#16181b;--card:#22252a;--ink:#f1efe8;--mut:#a3a6ad;--line:#33373d;--yel:#ffc21a;--asf:#1f2226;
+--ok:#2fc173;--pay:#ffc21a;--exh:#ff5a47;--pic:#4ea0ff;color-scheme:dark}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,sans-serif;overflow-x:clip}
+h1,h2,.big{font-family:"Barlow Condensed",Barlow,sans-serif}
+header{background:var(--asf);padding:calc(16px + env(safe-area-inset-top)) max(4vw,14px) 18px;position:relative}
+header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:8px;background:repeating-linear-gradient(90deg,var(--yel) 0 46px,transparent 46px 70px)}
+.top{display:flex;align-items:center;gap:10px}
+h1{margin:0;font-size:clamp(30px,7vw,44px);line-height:1.05;font-weight:800;flex:1}
+.ico{width:44px;height:44px;border-radius:12px;border:2px solid #3a3e44;background:none;color:var(--ink);font-size:20px;cursor:pointer}
+.sub{color:#bfc2c8;font-size:14px;margin:2px 0 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dot{width:10px;height:10px;border-radius:50%;background:#777;display:inline-block}
+.dot.ok{background:var(--ok)}.dot.ko{background:var(--exh)}.dot.wait{background:var(--yel)}
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding-bottom:12px}
+.st{background:#2b2f34;border-radius:10px;padding:8px 10px;cursor:pointer;border:2px solid transparent}
+.st b{display:block;font:800 clamp(22px,5.5vw,32px)/1 "Barlow Condensed",sans-serif;white-space:nowrap}
+.st span{font-size:13px;color:#bfc2c8}
+.st.on{border-color:var(--yel)}
+@media(max-width:600px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px max(4vw,14px);border-bottom:1px solid var(--line)}
+input,select{font:16px Barlow,sans-serif;color:var(--ink)}
+.bar input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.chips{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px;scrollbar-width:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:8px 14px;font:600 14px Barlow,sans-serif;min-height:40px;cursor:pointer}
+.chip.on{background:var(--yel);color:#111;border-color:var(--yel)}
+main{padding:10px max(4vw,14px) calc(110px + env(safe-area-inset-bottom));max-width:900px;margin:0 auto}
+.note{font-size:14px;color:var(--mut);margin:4px 0 10px}
+.row{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;align-items:center}
+.row.in{border-left-color:var(--ok)}
+.who{cursor:pointer}
+.nm{font:700 20px/1.15 "Barlow Condensed",sans-serif}
+.nm small{font:700 14px Barlow,sans-serif;color:#111;background:var(--yel);border-radius:6px;padding:0 6px;margin-right:6px}
+.car{font-size:14px;color:var(--mut)}
+.tg{display:flex;gap:6px}
+.t{min-width:66px;min-height:52px;border-radius:10px;border:2px solid var(--line);background:transparent;color:var(--mut);font:600 13px Barlow,sans-serif;cursor:pointer;padding:4px 6px;line-height:1.1}
+.t i{display:block;font-style:normal;font:800 19px/1 "Barlow Condensed",sans-serif}
+.t.on[data-k=entrato]{background:var(--ok);border-color:var(--ok);color:#06210f}
+.t.on[data-k=pagato]{background:var(--pay);border-color:var(--pay);color:#111}
+.t.on[data-k=scarichi]{background:var(--exh);border-color:var(--exh);color:#fff}
+.t.on[data-k=foto]{background:var(--pic);border-color:var(--pic);color:#04142a}
+.t.pend{opacity:.65;border-style:dashed}
+@media(max-width:600px){.row{grid-template-columns:1fr}.t{flex:1}}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+.empty{text-align:center;padding:40px 10px;color:var(--mut)}
+.empty .big{font-size:28px;color:var(--ink);margin-bottom:6px}
+.btn{min-height:46px;padding:10px 18px;border-radius:10px;border:0;background:var(--yel);color:#111;font:700 16px Barlow,sans-serif;cursor:pointer}
+.btn.sec{background:transparent;border:2px solid var(--line);color:var(--ink)}
+.btn.del{background:transparent;border:2px solid var(--exh);color:var(--exh)}
+.btn.w{width:100%}
+.fab{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:6;box-shadow:0 6px 20px #0008;border-radius:99px;padding:14px 22px}
+dialog{border:0;border-radius:16px;padding:0;width:min(520px,94vw);max-height:90vh;background:var(--card);color:var(--ink);box-shadow:0 20px 60px #000a}
+dialog::backdrop{background:#000b}
+.dl{padding:18px}
+.dl h2{margin:0 0 10px;font-size:26px}
+label{display:block;font-size:14px;color:var(--mut);margin:10px 0 3px}
+.dl input,.dl select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);min-height:46px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 10px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;justify-content:flex-end}
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#000;color:#fff;padding:10px 14px;border-radius:12px;display:none;gap:12px;align-items:center;z-index:20;max-width:92vw;border:1px solid #333}
+.toast button{background:none;border:0;color:var(--yel);font:700 15px Barlow,sans-serif;cursor:pointer;min-height:36px}
+#setup{min-height:100vh;display:none;flex-direction:column;justify-content:center;padding:calc(24px + env(safe-area-inset-top)) 22px 40px;max-width:520px;margin:0 auto}
+#setup .logo{width:96px;height:96px;border-radius:24px;margin-bottom:16px}
+#setup h1{font-size:44px;margin-bottom:8px}
+#setup p{color:var(--mut)}
+#setup input{width:100%;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--card);margin:8px 0 12px}
+#qr{background:#fff;padding:14px;border-radius:12px;width:max-content;margin:10px auto}
+#qr img,#qr canvas{display:block;width:220px;height:220px}
+.linkbox{font:13px ui-monospace,monospace;word-break:break-all;background:var(--bg);padding:10px;border-radius:10px;color:var(--mut);max-height:90px;overflow:auto}
+.sect{border-top:1px solid var(--line);margin-top:16px;padding-top:6px}
+@media(prefers-reduced-motion:no-preference){.t{transition:background .12s,transform .08s}.t:active{transform:scale(.95)}}
+</style>
+</head>
+<body>
+
+<section id="setup">
+  <img class="logo" src="icon-192.png" alt="">
+  <h1>Parcheggio Raduno</h1>
+  <p>Per entrare serve il link del raduno che ti ha mandato l'organizzatore. Aprilo dal telefono oppure incollalo qui.</p>
+  <input id="linkIn" placeholder="Incolla qui il link del raduno" autocomplete="off">
+  <button class="btn w" id="linkGo">Entra</button>
+  <p class="note" id="setupErr"></p>
+</section>
+
+<div id="app" style="display:none">
+<header>
+  <div class="top"><h1 id="titolo">Parcheggio Raduno</h1><button class="ico" id="menuBtn" aria-label="Menu">☰</button></div>
+  <div class="sub"><span class="dot wait" id="dot"></span><span id="stato">Collegamento…</span></div>
+  <div class="stats" id="stats"></div>
+</header>
+<div class="bar">
+  <input id="q" type="search" placeholder="Cerca nome, auto o targa…" autocomplete="off">
+  <div class="chips" id="chips"></div>
+</div>
+<main>
+  <div class="note" id="count"></div>
+  <div id="list"></div>
+</main>
+<button class="btn fab" id="add">+ Iscrivi</button>
+</div>
+
+<div class="toast" id="toast"><span id="tmsg"></span><button id="undo">Annulla</button></div>
+
+<dialog id="dEdit"><form class="dl" id="fEdit">
+  <h2 id="eTitle">Concorrente</h2>
+  <div class="two">
+    <div><label for="eNome">Nome</label><input id="eNome" required></div>
+    <div><label for="eCognome">Cognome</label><input id="eCognome"></div>
+  </div>
+  <div class="two">
+    <div><label for="eAuto">Auto</label><input id="eAuto"></div>
+    <div><label for="eTarga">Targa</label><input id="eTarga" style="text-transform:uppercase"></div>
+  </div>
+  <div class="two">
+    <div><label for="eTel">Telefono</label><input id="eTel" inputmode="tel"></div>
+    <div><label for="eNum">N° gara</label><input id="eNum" inputmode="numeric"></div>
+  </div>
+  <label for="eNote">Note</label><input id="eNote">
+  <div class="acts">
+    <button type="button" class="btn sec" id="eCancel">Chiudi</button>
+    <button type="submit" class="btn" id="eSave">Salva</button>
+  </div>
+</form></dialog>
+
+<dialog id="dMenu"><form class="dl" id="fMenu">
+  <h2>Impostazioni</h2>
+  <label for="cNome">Nome del raduno</label><input id="cNome" placeholder="Es. Raduno d'autunno">
+  <div class="two">
+    <div><label for="cPrezzo">Ingresso (€)</label><input id="cPrezzo" type="number" min="0" step="0.5" inputmode="decimal"></div>
+    <div><label for="cPrezzoS">Extra scarichi (€)</label><input id="cPrezzoS" type="number" min="0" step="0.5" inputmode="decimal"></div>
+  </div>
+  <div class="acts"><button type="submit" class="btn">Salva impostazioni</button></div>
+  <div class="sect">
+    <h2 style="font-size:22px;margin-top:8px">Condividi con i collaboratori</h2>
+    <div class="note">Fai inquadrare il QR con la fotocamera, oppure manda il link. Chi ha il link entra senza account.</div>
+    <div id="qr"></div>
+    <div class="linkbox" id="linkTxt"></div>
+    <div class="acts"><button type="button" class="btn sec" id="shareBtn">Invia link</button><button type="button" class="btn sec" id="copyBtn">Copia link</button></div>
+  </div>
+  <div class="sect">
+    <h2 style="font-size:22px;margin-top:8px">Liste</h2>
+    <div class="acts" style="justify-content:flex-start"><button type="button" class="btn sec" id="copyScar">Copia lista scarichi</button><button type="button" class="btn sec" id="copyFoto">Copia lista foto</button></div>
+  </div>
+  <div class="acts"><button type="button" class="btn del" id="logout">Scollega questo telefono</button><button type="button" class="btn sec" id="mClose">Chiudi</button></div>
+</form></dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+{
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const FLAGS=[['entrato','Entrato'],['pagato','Pagato'],['scarichi','Scarichi'],['foto','Foto']];
+const LS='parcheggio-raduno';
+const store={get(k,d){try{const v=localStorage.getItem(LS+'.'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(LS+'.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(LS+'.'+k)}catch(e){}}};
+
+let conn=store.get('conn',null);           // {s,k}
+let rows=store.get('rows',[]);             // ultima copia dal foglio
+let cfg=store.get('cfg',{prezzo:0,prezzoScarichi:0,nome:''});
+let queue=store.get('queue',[]);           // scritture in attesa {id,f,v}
+let filter='tutti',lastUndo=null,busy=false,lastOk=0;
+
+/* ---------- collegamento ---------- */
+function parseLink(t){
+  t=String(t||'').trim();const h=t.includes('#')?t.slice(t.indexOf('#')+1):t;
+  const p=new URLSearchParams(h.replace(/^\?/,''));const s=p.get('s'),k=p.get('k');
+  return s&&k&&/^[\w-]+$/.test(s)&&/^\w+$/.test(k)?{s,k}:null}
+const fromHash=parseLink(location.hash);
+if(fromHash){conn=fromHash;store.set('conn',conn);history.replaceState(null,'',location.pathname)}
+const appLink=()=>'https://capofusnez.github.io/parcheggio-raduno/#s='+conn.s+'&k='+conn.k;
+const api=p=>'https://script.google.com/macros/s/'+conn.s+'/exec?'+new URLSearchParams(Object.assign({k:conn.k},p));
+async function call(p){const r=await fetch(api(p),{redirect:'follow'});if(!r.ok)throw new Error('http '+r.status);const j=await r.json();if(!j.ok)throw new Error(j.errore||'errore');return j}
+
+function show(){const ok=!!conn;$('setup').style.display=ok?'none':'flex';$('app').style.display=ok?'':'none';if(ok){render();refresh()}}
+$('linkGo').onclick=async()=>{const c=parseLink($('linkIn').value);if(!c){$('setupErr').textContent='Link non valido: deve contenere #s=…&k=…';return}
+  conn=c;$('setupErr').textContent='Controllo…';try{await call({a:'list'});store.set('conn',conn);$('setupErr').textContent='';show()}catch(e){conn=null;$('setupErr').textContent=e.message==='chiave'?'Il link non è più valido: chiedine uno nuovo.':'Non riesco a collegarmi. Controlla la rete e riprova.'}};
+
+/* ---------- sincronizzazione ---------- */
+function setStato(c,t){$('dot').className='dot '+c;$('stato').textContent=t}
+function pendingFor(id,f){for(let i=queue.length-1;i>=0;i--)if(queue[i].id===id&&queue[i].f===f)return queue[i];return null}
+async function flush(){
+  while(queue.length){const w=queue[0];
+    try{await call({a:'set',id:w.id,f:w.f,v:w.v})}catch(e){if(e.message==='chiave')return lost();setStato('ko',`Senza rete · ${queue.length} modifiche in attesa`);return false}
+    queue.shift();store.set('queue',queue)}
+  return true}
+async function refresh(){
+  if(busy||!conn)return;busy=true;
+  try{const okQ=await flush();
+    if(okQ!==false){const j=await call({a:'list'});
+      rows=j.rows;cfg=j.cfg||cfg;store.set('rows',rows);store.set('cfg',cfg);lastOk=Date.now();
+      setStato('ok','Collegato al foglio · aggiornato '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));render();
+      busy=false;if(queue.length)setTimeout(refresh,200);return}
+  }catch(e){if(e.message==='chiave')lost();else setStato('ko','Senza rete · riprovo'+(queue.length?` · ${queue.length} in attesa`:''))}
+  busy=false}
+function lost(){setStato('ko','Link non più valido');conn=null;store.del('conn');$('setupErr').textContent='Il link è stato cambiato dall\'organizzatore: chiedine uno nuovo.';show();return false}
+setInterval(()=>{if(document.visibilityState==='visible')refresh()},5000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh()});
+window.addEventListener('online',refresh);
+
+function write(id,f,v){queue=queue.filter(w=>!(w.id===id&&w.f===f));queue.push({id,f,v});store.set('queue',queue);render();refresh()}
+function val(p,f){const w=pendingFor(p.id,f);return w?(f in {entrato:1,pagato:1,scarichi:1,foto:1}?w.v==='1':w.v):p[f]}
+
+/* ---------- vista ---------- */
+const name=p=>[val(p,'nome'),val(p,'cognome')].filter(Boolean).join(' ')||'(senza nome)';
+const FILT={tutti:['Tutti',p=>true],fuori:['Da entrare',p=>!val(p,'entrato')],dentro:['Entrati',p=>val(p,'entrato')],nonpag:['Entrati non pagati',p=>val(p,'entrato')&&!val(p,'pagato')],scarichi:['Gara scarichi',p=>val(p,'scarichi')],foto:['Foto',p=>val(p,'foto')]};
+const eur=n=>n.toLocaleString('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+function render(){
+  $('titolo').textContent=cfg.nome||'Parcheggio Raduno';
+  const n=rows.length,c=k=>rows.filter(p=>val(p,k)).length;
+  const inc=rows.reduce((s,p)=>s+(val(p,'pagato')?(+cfg.prezzo||0)+(val(p,'scarichi')?(+cfg.prezzoScarichi||0):0):0),0);
+  const st=[['dentro',c('entrato')+'/'+n,'Entrati'],['nonpag',rows.filter(FILT.nonpag[1]).length,'Da incassare'],['tutti',eur(inc),'Incassato'],['scarichi',c('scarichi'),'Scarichi'],['foto',c('foto'),'Foto']];
+  $('stats').innerHTML=st.map(([f,v,l])=>`<div class="st${filter===f&&f!=='tutti'?' on':''}" data-f="${f}"><b>${esc(v)}</b><span>${l}</span></div>`).join('');
+  $('chips').innerHTML=Object.entries(FILT).map(([k,[l]])=>`<button class="chip${filter===k?' on':''}" data-f="${k}">${l}</button>`).join('');
+  const q=$('q').value.trim().toLowerCase();
+  const list=rows.filter(FILT[filter][1]).filter(p=>!q||[name(p),val(p,'auto'),val(p,'targa'),val(p,'num')].join(' ').toLowerCase().includes(q));
+  list.sort((a,b)=>filter==='scarichi'?((+val(a,'num')||1e9)-(+val(b,'num')||1e9)||name(a).localeCompare(name(b),'it')):(val(a,'cognome')||val(a,'nome')||'').localeCompare(val(b,'cognome')||val(b,'nome')||'','it'));
+  $('count').textContent=n?`${list.length} su ${n} · ${FILT[filter][0]}`:'';
+  if(!n){$('list').innerHTML=`<div class="empty"><div class="big">Nessun iscritto per ora</div>Le iscrizioni del modulo Google compaiono qui da sole. Al cancello usa “+ Iscrivi”.</div>`;return}
+  if(!list.length){$('list').innerHTML=`<div class="empty">Nessun risultato.</div>`;return}
+  $('list').innerHTML=list.map(p=>{const num=val(p,'num'),inn=val(p,'entrato');
+    return `<div class="row${inn?' in':''}" data-id="${esc(p.id)}">
+    <div class="who"><div class="nm">${num?`<small>${esc(num)}</small>`:''}${esc(name(p))}</div>
+    <div class="car">${esc([val(p,'auto'),String(val(p,'targa')||'').toUpperCase()].filter(Boolean).join(' · ')||'—')}${inn&&p.ora&&!pendingFor(p.id,'entrato')?' · entrato '+esc(p.ora):''}${val(p,'note')?' · '+esc(val(p,'note')):''}</div></div>
+    <div class="tg">${FLAGS.map(([k,l])=>{const on=val(p,k);return `<button class="t${on?' on':''}${pendingFor(p.id,k)?' pend':''}" data-k="${k}" aria-pressed="${!!on}"><i>${on?'✓':'–'}</i>${l}</button>`}).join('')}</div></div>`}).join('');
+}
+
+/* ---------- azioni ---------- */
+$('list').addEventListener('click',e=>{
+  const row=e.target.closest('.row');if(!row)return;const p=rows.find(r=>r.id===row.dataset.id);if(!p)return;
+  const t=e.target.closest('.t');
+  if(t){const k=t.dataset.k,was=!!val(p,k);write(p.id,k,was?'0':'1');try{navigator.vibrate&&navigator.vibrate(25)}catch(x){}
+    lastUndo=()=>write(p.id,k,was?'1':'0');toast(`${name(p)}: ${FLAGS.find(f=>f[0]===k)[1]} ${was?'no':'sì'}`);return}
+  if(e.target.closest('.who'))openEdit(p)});
+function pick(e){const f=e.target.closest('[data-f]');if(f){filter=f.dataset.f;render();scrollTo({top:0})}}
+$('stats').onclick=pick;$('chips').onclick=pick;$('q').oninput=render;
+let tt;function toast(m,undo=true){$('tmsg').textContent=m;$('undo').style.display=undo&&lastUndo?'':'none';$('toast').style.display='flex';clearTimeout(tt);tt=setTimeout(()=>{$('toast').style.display='none';lastUndo=null},4000)}
+$('undo').onclick=()=>{lastUndo&&lastUndo();lastUndo=null;$('toast').style.display='none'};
+
+const EF=[['eNome','nome'],['eCognome','cognome'],['eAuto','auto'],['eTarga','targa'],['eTel','tel'],['eNum','num'],['eNote','note']];
+let editing=null;
+function openEdit(p){editing=p;$('eTitle').textContent=p?'Modifica':'Iscrizione al cancello';$('eSave').textContent=p?'Salva':'Iscrivi';
+  EF.forEach(([i,k])=>$(i).value=p?(val(p,k)||''):'');$('dEdit').showModal()}
+$('add').onclick=()=>openEdit(null);$('eCancel').onclick=()=>$('dEdit').close();
+$('fEdit').onsubmit=async e=>{e.preventDefault();
+  const v={};EF.forEach(([i,k])=>v[k]=$(i).value.trim());v.targa=v.targa.toUpperCase();
+  if(editing){EF.forEach(([,k])=>{if(String(val(editing,k)||'')!==v[k])write(editing.id,k,v[k])});$('dEdit').close();toast('Salvato',false);return}
+  $('eSave').disabled=true;$('eSave').textContent='Invio…';
+  try{const j=await call(Object.assign({a:'add'},v));rows.push(Object.assign({id:j.id,entrato:false,pagato:false,scarichi:false,foto:false,ora:''},v));render();$('dEdit').close();
+    const p=rows.find(r=>r.id===j.id);openAfter(p)}
+  catch(x){toast('Non inviato: serve la rete per iscrivere',false)}
+  $('eSave').disabled=false;$('eSave').textContent='Iscrivi'};
+function openAfter(p){filter='tutti';$('q').value=p?name(p):'';render();toast('Iscritto: ora segna Entrato e Pagato',false)}
+
+/* ---------- menu ---------- */
+let qrDone=false;
+$('menuBtn').onclick=()=>{$('cNome').value=cfg.nome||'';$('cPrezzo').value=cfg.prezzo||'';$('cPrezzoS').value=cfg.prezzoScarichi||'';
+  $('linkTxt').textContent=appLink();
+  if(!qrDone&&window.QRCode){$('qr').innerHTML='';new QRCode($('qr'),{text:appLink(),width:440,height:440,correctLevel:QRCode.CorrectLevel.M});qrDone=true}
+  $('dMenu').showModal()};
+$('mClose').onclick=()=>$('dMenu').close();
+$('fMenu').onsubmit=async e=>{e.preventDefault();const n={nome:$('cNome').value.trim(),prezzo:+$('cPrezzo').value||0,prezzoScarichi:+$('cPrezzoS').value||0};
+  try{await call(Object.assign({a:'cfg'},n));cfg=Object.assign(cfg,n);store.set('cfg',cfg);render();$('dMenu').close();toast('Impostazioni salvate per tutti',false)}catch(x){toast('Non salvato: controlla la rete',false)}};
+async function copy(t,m){try{await navigator.clipboard.writeText(t);toast(m,false)}catch(e){toast('Copia non riuscita',false)}}
+$('copyBtn').onclick=()=>copy(appLink(),'Link copiato');
+$('shareBtn').onclick=async()=>{try{if(navigator.share){await navigator.share({title:cfg.nome||'Parcheggio Raduno',text:'App del parcheggio per il raduno:',url:appLink()});return}}catch(e){if(e.name==='AbortError')return}copy(appLink(),'Link copiato: incollalo su WhatsApp')};
+$('copyScar').onclick=()=>copy('GARA SCARICHI\n'+rows.filter(p=>val(p,'scarichi')).sort((a,b)=>(+val(a,'num')||1e9)-(+val(b,'num')||1e9)).map((p,i)=>`${val(p,'num')||i+1}. ${name(p)} – ${val(p,'auto')||''} ${val(p,'targa')||''}${val(p,'entrato')?'':' (non entrato)'}`).join('\n'),'Lista scarichi copiata');
+$('copyFoto').onclick=()=>copy('FOTO CON RAGAZZE IMMAGINE\n'+rows.filter(p=>val(p,'foto')).map((p,i)=>`${i+1}. ${name(p)} – ${val(p,'auto')||''}`).join('\n'),'Lista foto copiata');
+$('logout').onclick=()=>{store.del('conn');store.del('rows');store.del('queue');conn=null;rows=[];queue=[];$('dMenu').close();show()};
+
+if('serviceWorker' in navigator&&location.protocol==='https:'&&location.hostname.endsWith('github.io'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+show();
+}
+</script>
+</body>
+</html>
